@@ -12,10 +12,16 @@ public:
     Player(Side side);
     ~Player();
 
+    Move *randMove();
+    Move *greedyMove();
+    int miniMax(Side turn, Board b, int depth);
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
+    Board board;
+    Side side;
+    Move *bestMove;
 };
 
 #endif

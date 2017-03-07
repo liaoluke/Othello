@@ -9,9 +9,13 @@ class Move {
    
 public:
     int x, y;
+    Move() {
+        this->x = 0;
+        this->y = 0;
+    }
     Move(int x, int y) {
         this->x = x;
-        this->y = y;        
+        this->y = y;
     }
     ~Move() {}
 

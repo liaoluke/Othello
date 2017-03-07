@@ -21,10 +21,10 @@ Board::~Board() {
 /*
  * Returns a copy of this board.
  */
-Board *Board::copy() {
-    Board *newBoard = new Board();
-    newBoard->black = black;
-    newBoard->taken = taken;
+Board Board::copy() {
+    Board newBoard;
+    newBoard.black = black;
+    newBoard.taken = taken;
     return newBoard;
 }
 
@@ -139,6 +139,14 @@ void Board::doMove(Move *m, Side side) {
         }
     }
     set(side, X, Y);
+}
+
+/*
+ * Current score of given side's stones.
+ * Takes the difference in number of stones.
+ */
+int Board::score(Side side) {
+    return 2 * count(side) - taken.count();
 }
 
 /*

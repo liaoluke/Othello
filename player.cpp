@@ -8,18 +8,93 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
-
-    /*
-     * TODO: Do any initialization you need to do here (setting up the board,
-     * precalculating things, etc.) However, remember that you will only have
-     * 30 seconds.
-     */
+    this->side = side;
+    bestMove = nullptr;
 }
 
 /*
  * Destructor for the player.
  */
 Player::~Player() {
+    if(bestMove != nullptr) delete bestMove;
+}
+
+/*
+ * Does depth first search through possible moves.
+ * Calculates and returns minimax of stones score.
+ */
+int Player::miniMax(Side turn, Board b, int depth) {
+    if(depth == 0) {
+        return b.score(side);
+    }
+    int factor = -1;
+    if(side == turn) factor = 1;
+    int mmScore = factor * -1000;
+    Move *bMove = nullptr;
+    Side next = (turn == BLACK) ? WHITE : BLACK;
+
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Move *move = new Move(i, j);
+            if (b.checkMove(move, turn)) {
+                Board newb = b.copy();
+                newb.doMove(move, turn);
+                int nscore = miniMax(next, newb, depth - 1);
+                if(factor * nscore >= factor * mmScore) {
+                    mmScore = nscore;
+                    bMove = move;
+                }
+                else delete move;
+            }
+            else delete move;
+        }
+    }
+    bestMove = bMove;
+    return mmScore;
+}
+
+/*
+ * Makes first possible valid move.
+ */
+Move *Player::randMove() {
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Move *move = new Move(i, j);
+            if (board.checkMove(move, side)) {
+                board.doMove(move, side);
+                return move;
+            }
+        }
+    }
+    return nullptr;
+}
+
+/*
+ * Makes move with greatest immediate gain.
+ */
+Move *Player::greedyMove() {
+    // simply chooses move with highest score
+    int maxScore = 0;
+    Move *maxMove = nullptr;
+    Board newBoard;
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Move *move = new Move(i, j);
+            if (board.checkMove(move, side)) {
+                newBoard = board.copy();
+                newBoard.doMove(move, side);
+                if (newBoard.count(side) >= maxScore) {
+                    maxScore = newBoard.count(side);
+                    if(maxMove != nullptr) delete maxMove;
+                    maxMove = move;
+                }
+                else delete move;
+            }
+            else delete move;
+        }
+    }
+    board.doMove(maxMove, side);
+    return maxMove;
 }
 
 /*
@@ -36,9 +111,16 @@ Player::~Player() {
  * return nullptr.
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
-    /*
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's opponents move before calculating your own move
-     */
-    return nullptr;
+    // Makes opponent's move and checks for valid moves
+    Side other = (side == BLACK) ? WHITE : BLACK;
+    board.doMove(opponentsMove, other);
+    if(!board.hasMoves(side)) return nullptr;
+
+    if(testingMinimax) {
+       miniMax(side, board, 2);
+       board.doMove(bestMove, side);
+       return bestMove;
+    }
+
+    return greedyMove();
 }
