@@ -10,6 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
     this->side = side;
     bestMove = nullptr;
+    file = fopen("output.txt", "w");
 }
 
 /*
@@ -17,6 +18,49 @@ Player::Player(Side side) {
  */
 Player::~Player() {
     if(bestMove != nullptr) delete bestMove;
+    fclose(file);
+}
+
+/*
+ * Does depth first search through possible moves.
+ * Calculates and returns minimax of stones score.
+ * Keeps track of alpha and beta to speed up search.
+ */
+int Player::miniMaxP(Side turn, Board b, int depth, int max, int min) {
+    if (depth == 0) return b.score(side);
+    int factor = -1;
+    if (side == turn) factor = 1;
+    int mmScore = factor * -1000;
+    Move *bMove = nullptr;
+    Side next = (turn == BLACK) ? WHITE : BLACK;
+
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            Move *move = new Move(i, j);
+            if (b.checkMove(move, turn)) {
+                Board newb = b.copy();
+                newb.doMove(move, turn);
+                int nscore = miniMaxP(next, newb, depth - 1, max, min);
+
+                if (factor == -1 && nscore < min) min = nscore;
+                else if (factor == 1 && nscore > max) max = nscore;
+
+                if (factor * nscore >= factor * mmScore) {
+                    mmScore = nscore;
+                    bMove = move;
+                }
+                else delete move;
+
+                if (min < max) {
+                    bestMove = bMove;
+                    return mmScore;
+                }
+            }
+            else delete move;
+        }
+    }
+    bestMove = bMove;
+    return mmScore;
 }
 
 /*
@@ -24,11 +68,9 @@ Player::~Player() {
  * Calculates and returns minimax of stones score.
  */
 int Player::miniMax(Side turn, Board b, int depth) {
-    if(depth == 0) {
-        return b.score(side);
-    }
+    if (depth == 0) return b.score(side);
     int factor = -1;
-    if(side == turn) factor = 1;
+    if (side == turn) factor = 1;
     int mmScore = factor * -1000;
     Move *bMove = nullptr;
     Side next = (turn == BLACK) ? WHITE : BLACK;
@@ -40,7 +82,8 @@ int Player::miniMax(Side turn, Board b, int depth) {
                 Board newb = b.copy();
                 newb.doMove(move, turn);
                 int nscore = miniMax(next, newb, depth - 1);
-                if(factor * nscore >= factor * mmScore) {
+
+                if (factor * nscore >= factor * mmScore) {
                     mmScore = nscore;
                     bMove = move;
                 }
@@ -117,10 +160,16 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     if(!board.hasMoves(side)) return nullptr;
 
     if(testingMinimax) {
-       miniMax(side, board, 2);
-       board.doMove(bestMove, side);
-       return bestMove;
+        miniMaxP(side, board, 2, -1000, 1000);
+        //miniMax(side, board, 2);
+        board.doMove(bestMove, side);
+        return bestMove;
     }
 
+    if(msLeft > 100000 || msLeft == -1) {
+        miniMaxP(side, board, 6, -1000, 1000);
+        board.doMove(bestMove, side);
+        return bestMove;
+    }
     return greedyMove();
 }

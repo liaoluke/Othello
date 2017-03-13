@@ -14,6 +14,7 @@ public:
 
     Move *randMove();
     Move *greedyMove();
+    int miniMaxP(Side turn, Board b, int depth, int max, int min);
     int miniMax(Side turn, Board b, int depth);
     Move *doMove(Move *opponentsMove, int msLeft);
 
@@ -22,6 +23,7 @@ public:
     Board board;
     Side side;
     Move *bestMove;
+    FILE *file;
 };
 
 #endif
