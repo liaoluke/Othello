@@ -10,7 +10,6 @@ Player::Player(Side side) {
     testingMinimax = false;
     this->side = side;
     bestMove = nullptr;
-    file = fopen("output.txt", "w");
 }
 
 /*
@@ -18,7 +17,6 @@ Player::Player(Side side) {
  */
 Player::~Player() {
     if(bestMove != nullptr) delete bestMove;
-    fclose(file);
 }
 
 /*
@@ -116,7 +114,7 @@ Move *Player::randMove() {
  * Makes move with greatest immediate gain.
  */
 Move *Player::greedyMove() {
-    // simply chooses move with highest score
+    // Simply chooses move with highest score
     int maxScore = 0;
     Move *maxMove = nullptr;
     Board newBoard;
@@ -128,7 +126,7 @@ Move *Player::greedyMove() {
                 newBoard.doMove(move, side);
                 if (newBoard.count(side) >= maxScore) {
                     maxScore = newBoard.count(side);
-                    if(maxMove != nullptr) delete maxMove;
+                    if (maxMove != nullptr) delete maxMove;
                     maxMove = move;
                 }
                 else delete move;
@@ -157,19 +155,20 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     // Makes opponent's move and checks for valid moves
     Side other = (side == BLACK) ? WHITE : BLACK;
     board.doMove(opponentsMove, other);
-    if(!board.hasMoves(side)) return nullptr;
+    if (!board.hasMoves(side)) return nullptr;
 
-    if(testingMinimax) {
+    if (testingMinimax) {
         miniMaxP(side, board, 2, -1000, 1000);
         //miniMax(side, board, 2);
         board.doMove(bestMove, side);
         return bestMove;
     }
 
-    if(msLeft > 100000 || msLeft == -1) {
+    if (msLeft > 100000 || msLeft == -1) {
         miniMaxP(side, board, 6, -1000, 1000);
         board.doMove(bestMove, side);
         return bestMove;
     }
+    if (msLeft < 1000) return randMove();
     return greedyMove();
 }

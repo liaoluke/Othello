@@ -23,7 +23,6 @@ public:
     Board board;
     Side side;
     Move *bestMove;
-    FILE *file;
 };
 
 #endif
